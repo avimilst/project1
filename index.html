@@ -253,50 +253,110 @@
             color: #3498db;
         }
 
-        .settings-section {
-            background: white;
-            border-radius: 12px;
-            padding: 20px 24px;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-            margin-bottom: 24px;
+        /* Modal Styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
         }
 
-        .settings-header {
+        .modal-overlay.visible {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 450px;
+            width: 90%;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            cursor: pointer;
-            user-select: none;
+            margin-bottom: 16px;
         }
 
-        .settings-title {
+        .modal-title {
             font-weight: 600;
             color: #2c3e50;
-            font-size: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #888;
+            cursor: pointer;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .modal-close:hover {
+            color: #333;
+        }
+
+        .modal-body {
+            margin-bottom: 20px;
+        }
+
+        .modal-body p {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 16px;
+        }
+
+        .settings-link {
+            color: #888;
+            font-size: 0.85rem;
+            cursor: pointer;
+            text-decoration: none;
+            margin-left: 8px;
+        }
+
+        .settings-link:hover {
+            color: #3498db;
+            text-decoration: underline;
+        }
+
+        .api-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.8rem;
+            color: #27ae60;
+            margin-left: 8px;
+        }
+
+        .api-indicator .dot {
+            width: 6px;
+            height: 6px;
+            background: #27ae60;
+            border-radius: 50%;
+        }
+
+        .footer-content {
             display: flex;
+            flex-direction: column;
             align-items: center;
             gap: 8px;
         }
 
-        .settings-toggle {
-            color: #666;
-            font-size: 0.85rem;
-            transition: transform 0.2s;
-        }
-
-        .settings-toggle.open {
-            transform: rotate(180deg);
-        }
-
-        .settings-content {
-            display: none;
-            margin-top: 16px;
-            padding-top: 16px;
-            border-top: 1px solid #e1e5e9;
-        }
-
-        .settings-content.visible {
-            display: block;
+        .footer-links {
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
 
         .api-key-input-group {
@@ -461,33 +521,6 @@
             display: block;
         }
 
-        .btn-analyze-image {
-            width: 100%;
-            padding: 14px 24px;
-            background: #9b59b6;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s, transform 0.1s;
-            margin-top: 16px;
-        }
-
-        .btn-analyze-image:hover {
-            background: #8e44ad;
-        }
-
-        .btn-analyze-image:active {
-            transform: scale(0.98);
-        }
-
-        .btn-analyze-image:disabled {
-            background: #bdc3c7;
-            cursor: not-allowed;
-        }
-
         .api-key-warning {
             background: #fff3cd;
             border: 1px solid #ffc107;
@@ -567,25 +600,6 @@
             <p class="subtitle">Paste a suspicious message or upload a screenshot to analyze for scam indicators</p>
         </header>
 
-        <section class="settings-section">
-            <div class="settings-header" id="settings-toggle">
-                <span class="settings-title">
-                    <span>&#9881;</span> API Settings
-                </span>
-                <span class="settings-toggle" id="settings-arrow">&#9660;</span>
-            </div>
-            <div class="settings-content" id="settings-content">
-                <p style="margin-bottom: 12px; color: #666; font-size: 0.9rem;">
-                    Enter your Anthropic API key to enable screenshot analysis using Claude's vision capability.
-                </p>
-                <div class="api-key-input-group">
-                    <input type="password" class="api-key-input" id="api-key-input" placeholder="sk-ant-api03-...">
-                    <button class="btn-save-key" id="save-key-btn">Save</button>
-                </div>
-                <div class="api-key-status" id="api-key-status"></div>
-            </div>
-        </section>
-
         <section class="input-section">
             <label for="message-input">Paste suspicious message here:</label>
             <textarea
@@ -610,12 +624,16 @@
                     <button class="btn-remove-image" id="remove-image-btn">Remove</button>
                 </div>
                 <img class="image-preview" id="image-preview" alt="Screenshot preview">
-                <button class="btn-analyze-image" id="analyze-image-btn">Analyze Screenshot</button>
+                <div class="image-loading" id="image-loading" style="display: none; text-align: center; padding: 16px; color: #666;">
+                    <span class="loading-spinner" style="border-color: rgba(155, 89, 182, 0.3); border-top-color: #9b59b6;"></span>
+                    <span style="margin-left: 10px;">Analyzing screenshot...</span>
+                </div>
             </div>
 
             <div class="api-key-warning" id="api-key-warning">
-                <strong>API Key Required:</strong> To analyze screenshots, you need to add your Anthropic API key in the settings above.
-                <a href="https://console.anthropic.com/" target="_blank" rel="noopener">Get an API key</a>
+                <strong>API Key Required:</strong> To analyze screenshots, please add your Anthropic API key.
+                <a href="#" id="open-settings-warning" style="color: #856404; text-decoration: underline;">Open Settings</a> or
+                <a href="https://console.anthropic.com/" target="_blank" rel="noopener" style="color: #856404;">get an API key</a>
             </div>
         </section>
 
@@ -641,205 +659,116 @@
         </section>
 
         <footer>
-            <p>This tool provides general guidance only. When in doubt, verify directly with the official source.</p>
+            <div class="footer-content">
+                <p>This tool provides general guidance only. When in doubt, verify directly with the official source.</p>
+                <div class="footer-links">
+                    <a href="#" class="settings-link" id="open-settings">Settings</a>
+                    <span class="api-indicator" id="api-indicator" style="display: none;">
+                        <span class="dot"></span>
+                        API connected
+                    </span>
+                </div>
+            </div>
         </footer>
     </div>
 
+    <!-- Settings Modal -->
+    <div class="modal-overlay" id="settings-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <span class="modal-title">API Settings</span>
+                <button class="modal-close" id="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Enter your Anthropic API key to enable AI-powered scam analysis for both text messages and screenshots.</p>
+                <div class="api-key-input-group">
+                    <input type="password" class="api-key-input" id="api-key-input" placeholder="sk-ant-api03-...">
+                    <button class="btn-save-key" id="save-key-btn">Save</button>
+                </div>
+                <div class="api-key-status" id="api-key-status"></div>
+            </div>
+            <p style="font-size: 0.8rem; color: #888; text-align: center;">
+                <a href="https://console.anthropic.com/" target="_blank" rel="noopener" style="color: #3498db;">Get an API key from Anthropic</a>
+            </p>
+        </div>
+    </div>
+
     <script>
-        const redFlagPatterns = [
-            {
-                category: "Urgency Language",
-                patterns: [
-                    /\bact\s*now\b/i,
-                    /\blimited\s*time\b/i,
-                    /\bimmediately\b/i,
-                    /\bexpires?\s*today\b/i,
-                    /\burgent\b/i,
-                    /\bdon'?t\s*delay\b/i,
-                    /\btime\s*sensitive\b/i,
-                    /\blast\s*chance\b/i,
-                    /\bhurry\b/i,
-                    /\bonly\s*\d+\s*(hours?|minutes?|days?)\s*(left|remaining)\b/i,
-                    /\bexpir(es?|ing)\s*(soon|in\s*\d+)/i,
-                    /\bwithin\s*(24|48)\s*hours?\b/i,
-                    /\brespond\s*(immediately|now|asap)\b/i
-                ],
-                explanation: "Scammers create artificial urgency to pressure you into acting without thinking. Legitimate organizations give you time to make decisions."
-            },
-            {
-                category: "Money or Payment Requests",
-                patterns: [
-                    /\bwire\s*transfer\b/i,
-                    /\bgift\s*cards?\b/i,
-                    /\bsend\s*(money|funds|payment)\b/i,
-                    /\bpay(ment)?\s*(immediately|now|today)\b/i,
-                    /\b(western\s*union|moneygram)\b/i,
-                    /\bbitcoin\b/i,
-                    /\bcrypto(currency)?\b/i,
-                    /\bprepaid\s*(card|debit)\b/i,
-                    /\bcash\s*app\b/i,
-                    /\bzelle\b/i,
-                    /\bvenmo\b/i,
-                    /\bprocessing\s*fee\b/i,
-                    /\btransfer\s*fee\b/i,
-                    /\badvance\s*(fee|payment)\b/i
-                ],
-                explanation: "Requests for money via gift cards, wire transfers, or cryptocurrency are major red flags. These payment methods are nearly impossible to trace or recover."
-            },
-            {
-                category: "Personal Information Requests",
-                patterns: [
-                    /\bpassword\b/i,
-                    /\bssn\b/i,
-                    /\bsocial\s*security\b/i,
-                    /\bbank\s*(account|details?|information)\b/i,
-                    /\brouting\s*number\b/i,
-                    /\baccount\s*number\b/i,
-                    /\blogin\s*(credentials?|info|details?)\b/i,
-                    /\bverify\s*(your\s*)?(identity|account|information)\b/i,
-                    /\bconfirm\s*(your\s*)?(identity|account|details?)\b/i,
-                    /\bcredit\s*card\s*(number|info|details?)\b/i,
-                    /\bpin\s*(number|code)?\b/i,
-                    /\bdate\s*of\s*birth\b/i,
-                    /\bmother'?s?\s*maiden\s*name\b/i,
-                    /\bupdate\s*(your\s*)?(billing|payment)\s*(info|details?)\b/i
-                ],
-                explanation: "Legitimate companies never ask for passwords, SSN, or full bank details via email or text. This is a classic phishing attempt to steal your identity."
-            },
-            {
-                category: "Too-Good-To-Be-True Offers",
-                patterns: [
-                    /\blottery\b/i,
-                    /\bwinner\b/i,
-                    /\byou('ve)?\s*(have\s*)?(won|been\s*selected)\b/i,
-                    /\binheritance\b/i,
-                    /\bmillion\s*dollars?\b/i,
-                    /\bfree\s*money\b/i,
-                    /\bclaim\s*(your\s*)?(prize|reward|winnings?)\b/i,
-                    /\bcongratulations?\b/i,
-                    /\bselected\s*(as\s*a\s*)?(winner|beneficiary)\b/i,
-                    /\brandom(ly)?\s*selected\b/i,
-                    /\bunclaimed\s*(funds?|money)\b/i,
-                    /\bguaranteed\s*(income|return|profit)\b/i,
-                    /\brisk\s*free\b/i,
-                    /\bdouble\s*your\s*money\b/i
-                ],
-                explanation: "If it sounds too good to be true, it probably is. You cannot win a lottery you never entered, and strangers don't give away fortunes."
-            },
-            {
-                category: "Suspicious Sender Claims",
-                patterns: [
-                    /\birs\b/i,
-                    /\binternal\s*revenue\b/i,
-                    /\btech\s*support\b/i,
-                    /\bmicrosoft\s*(support|technician)\b/i,
-                    /\bapple\s*support\b/i,
-                    /\bnigerian?\s*prince\b/i,
-                    /\bbank\s*security\b/i,
-                    /\bsecurity\s*department\b/i,
-                    /\bfraud\s*department\b/i,
-                    /\bfbi\b/i,
-                    /\bcustoms\s*(officer|agent)\b/i,
-                    /\broyal(ty)?\s*family\b/i,
-                    /\bgovernment\s*official\b/i,
-                    /\battorney\s*general\b/i,
-                    /\bsocial\s*security\s*administration\b/i
-                ],
-                explanation: "Scammers impersonate trusted authorities to gain your trust. Real government agencies and tech companies don't contact you this way about urgent issues."
-            },
-            {
-                category: "Threatening Language",
-                patterns: [
-                    /\baccount\s*(will\s*be\s*)?(suspended|closed|terminated)\b/i,
-                    /\blegal\s*action\b/i,
-                    /\b(arrest|arrested)\b/i,
-                    /\bwarrant\b/i,
-                    /\bpolice\b/i,
-                    /\bjail\b/i,
-                    /\bprosecute\b/i,
-                    /\blaw\s*enforcement\b/i,
-                    /\bseize\s*(your\s*)?(assets?|property)\b/i,
-                    /\breport(ed)?\s*to\s*(the\s*)?(authorities|police)\b/i,
-                    /\bcriminal\s*charges?\b/i,
-                    /\bfines?\s*(of\s*\$?\d+|will\s*be\s*(issued|applied))\b/i,
-                    /\bpenalt(y|ies)\b/i,
-                    /\bdeport(ation|ed)?\b/i
-                ],
-                explanation: "Scammers use fear and threats to override your judgment. Legitimate organizations don't threaten arrest or legal action via email or text."
-            },
-            {
-                category: "Unusual Payment Methods",
-                patterns: [
-                    /\bitunes\s*cards?\b/i,
-                    /\bgoogle\s*play\s*cards?\b/i,
-                    /\bamazon\s*cards?\b/i,
-                    /\bsteam\s*cards?\b/i,
-                    /\bpay\s*(with|using|via)\s*(gift\s*cards?|crypto)\b/i,
-                    /\bscratch\s*off\s*(the\s*)?code\b/i,
-                    /\bread\s*(me\s*)?(the\s*)?numbers?\s*(on\s*(the\s*)?back)?\b/i,
-                    /\bredeem(able)?\s*code\b/i,
-                    /\buntraceable\b/i,
-                    /\banonymous\s*payment\b/i
-                ],
-                explanation: "No legitimate business or government agency accepts payment via gift cards. This is a tell-tale sign of a scam."
-            },
-            {
-                category: "Spelling and Grammar Errors",
-                patterns: [
-                    /\bdear\s*(customer|user|friend|beneficiary|sir\/madam)\b/i,
-                    /\bkindly\s*(do|provide|send|click|verify)\b/i,
-                    /\bdo\s*the\s*needful\b/i,
-                    /\brevert\s*back\b/i,
-                    /\byour\s*the\s/i,
-                    /\bplease\s*to\s/i,
-                    /\bwith\s*regards\s*to\s*the\s*above\b/i,
-                    /\b(recieve|reciept|transfered|informations|kindest)\b/i
-                ],
-                explanation: "Poor grammar and unusual phrasing often indicate foreign scam operations. Legitimate companies proofread their communications."
-            },
-            {
-                category: "Suspicious Links or Actions",
-                patterns: [
-                    /\bclick\s*(here|below|this\s*link)\b/i,
-                    /\bverify\s*(now|immediately|your\s*account)\b/i,
-                    /\blogin\s*(here|now|immediately)\b/i,
-                    /\bupdate\s*(your\s*)?(payment|billing|account)\s*(now|immediately)?\b/i,
-                    /\bdownload\s*(this|the)\s*(attachment|file)\b/i,
-                    /\benable\s*(macros|content)\b/i,
-                    /\bopen\s*(the\s*)?(attached|attachment)\b/i
-                ],
-                explanation: "Scammers often try to get you to click malicious links or download dangerous files. Never click links in suspicious messages."
-            }
-        ];
-
-        function analyzeMessage(text) {
-            const results = [];
-
-            for (const category of redFlagPatterns) {
-                const matches = [];
-                for (const pattern of category.patterns) {
-                    const match = text.match(pattern);
-                    if (match) {
-                        matches.push(match[0]);
-                    }
-                }
-
-                if (matches.length > 0) {
-                    results.push({
-                        category: category.category,
-                        explanation: category.explanation,
-                        matches: [...new Set(matches)]
-                    });
-                }
+        // =====================
+        // Claude API Text Analysis
+        // =====================
+        async function analyzeTextWithClaude(text) {
+            const apiKey = getApiKey();
+            if (!apiKey) {
+                throw new Error('API key is required for text analysis');
             }
 
-            return results;
-        }
+            const response = await fetch('https://api.anthropic.com/v1/messages', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-api-key': apiKey,
+                    'anthropic-version': '2023-06-01',
+                    'anthropic-dangerous-direct-browser-access': 'true'
+                },
+                body: JSON.stringify({
+                    model: 'claude-sonnet-4-20250514',
+                    max_tokens: 1500,
+                    messages: [
+                        {
+                            role: 'user',
+                            content: `Analyze this message for scam/phishing indicators. Evaluate for:
 
-        function calculateRiskLevel(flagCount) {
-            if (flagCount === 0) return 'low';
-            if (flagCount <= 2) return 'medium';
-            return 'high';
+1. Urgency tactics - Artificial time pressure, threats of consequences if you don't act immediately
+2. Impersonation attempts - Pretending to be government agencies, banks, tech companies, or other trusted entities
+3. Requests for money or personal info - Asking for payments, gift cards, passwords, SSN, bank details
+4. Suspicious links - Mentions of clicking links, unusual URLs, shortened links
+5. Psychological manipulation - Fear tactics, too-good-to-be-true offers, emotional manipulation, flattery
+
+Message to analyze:
+"""
+${text}
+"""
+
+Respond with a JSON object in this exact format (no markdown, just JSON):
+{
+  "riskLevel": "low" | "medium" | "high",
+  "flags": [
+    {
+      "category": "Category Name",
+      "explanation": "What was found and why it's suspicious"
+    }
+  ],
+  "summary": "Brief overall assessment"
+}
+
+Risk level guidelines:
+- "low": No scam indicators found, appears to be a normal message
+- "medium": 1-2 suspicious elements that warrant caution
+- "high": Multiple red flags or clear scam patterns detected
+
+If the text is not a message/communication, respond with:
+{"riskLevel": "low", "flags": [], "summary": "This does not appear to be a suspicious message."}`
+                        }
+                    ]
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error?.message || `API error: ${response.status}`);
+            }
+
+            const data = await response.json();
+            const content = data.content[0].text;
+
+            try {
+                const cleanContent = content.replace(/```json\n?|\n?```/g, '').trim();
+                return JSON.parse(cleanContent);
+            } catch (parseError) {
+                console.error('Failed to parse Claude response:', content);
+                throw new Error('Failed to parse analysis results');
+            }
         }
 
         function getRiskSummary(riskLevel, flagCount) {
@@ -852,7 +781,7 @@
             }
         }
 
-        function displayResults(flags, source = 'text') {
+        function displayAnalysisResults(analysis, source = 'text') {
             const resultsSection = document.getElementById('results');
             const riskScoreEl = document.getElementById('risk-score');
             const riskSummaryEl = document.getElementById('risk-summary');
@@ -860,17 +789,18 @@
             const flagCountEl = document.getElementById('flag-count');
             const flagsContainer = document.getElementById('flags-container');
 
-            const riskLevel = calculateRiskLevel(flags.length);
+            const riskLevel = analysis.riskLevel || 'low';
+            const flags = analysis.flags || [];
 
             riskScoreEl.textContent = riskLevel.charAt(0).toUpperCase() + riskLevel.slice(1);
             riskScoreEl.className = 'risk-score ' + riskLevel;
 
-            riskSummaryEl.textContent = getRiskSummary(riskLevel, flags.length);
+            riskSummaryEl.textContent = analysis.summary || getRiskSummary(riskLevel, flags.length);
 
             if (source === 'image') {
                 analysisSourceEl.textContent = 'Analyzed via Claude Vision API';
             } else {
-                analysisSourceEl.textContent = 'Analyzed via pattern matching';
+                analysisSourceEl.textContent = 'Analyzed via Claude AI';
             }
 
             flagCountEl.textContent = flags.length;
@@ -889,16 +819,9 @@
                 for (const flag of flags) {
                     const flagEl = document.createElement('div');
                     flagEl.className = 'flag-item';
-
-                    // For image analysis, matches may be descriptive text rather than exact matches
-                    const matchesHtml = flag.matches && flag.matches.length > 0
-                        ? `<div class="flag-matches">Found: ${flag.matches.map(m => `<code>${escapeHtml(m)}</code>`).join('')}</div>`
-                        : '';
-
                     flagEl.innerHTML = `
                         <div class="flag-category">${escapeHtml(flag.category)}</div>
                         <div class="flag-explanation">${escapeHtml(flag.explanation)}</div>
-                        ${matchesHtml}
                     `;
                     flagsContainer.appendChild(flagEl);
                 }
@@ -914,7 +837,7 @@
             return div.innerHTML;
         }
 
-        document.getElementById('analyze-btn').addEventListener('click', function() {
+        document.getElementById('analyze-btn').addEventListener('click', async function() {
             const text = document.getElementById('message-input').value.trim();
 
             if (!text) {
@@ -922,8 +845,28 @@
                 return;
             }
 
-            const flags = analyzeMessage(text);
-            displayResults(flags);
+            const apiKey = getApiKey();
+            if (!apiKey) {
+                alert('Please add your Anthropic API key in Settings (footer) to analyze messages.');
+                document.getElementById('settings-modal').classList.add('visible');
+                return;
+            }
+
+            const btn = this;
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading-spinner"></span> Analyzing...';
+
+            try {
+                const analysis = await analyzeTextWithClaude(text);
+                displayAnalysisResults(analysis, 'text');
+            } catch (error) {
+                console.error('Analysis error:', error);
+                alert('Error analyzing message: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = originalText;
+            }
         });
 
         document.getElementById('clear-btn').addEventListener('click', function() {
@@ -958,25 +901,36 @@
         function updateApiKeyStatus() {
             const statusEl = document.getElementById('api-key-status');
             const inputEl = document.getElementById('api-key-input');
+            const indicatorEl = document.getElementById('api-indicator');
             const savedKey = getApiKey();
 
             if (savedKey) {
                 statusEl.textContent = 'API key saved (stored in browser)';
                 statusEl.className = 'api-key-status saved';
                 inputEl.value = savedKey;
+                indicatorEl.style.display = 'inline-flex';
             } else {
                 statusEl.textContent = 'No API key saved';
                 statusEl.className = 'api-key-status';
                 inputEl.value = '';
+                indicatorEl.style.display = 'none';
             }
         }
 
-        // Settings toggle
-        document.getElementById('settings-toggle').addEventListener('click', function() {
-            const content = document.getElementById('settings-content');
-            const arrow = document.getElementById('settings-arrow');
-            content.classList.toggle('visible');
-            arrow.classList.toggle('open');
+        // Modal functionality
+        document.getElementById('open-settings').addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('settings-modal').classList.add('visible');
+        });
+
+        document.getElementById('close-modal').addEventListener('click', function() {
+            document.getElementById('settings-modal').classList.remove('visible');
+        });
+
+        document.getElementById('settings-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.classList.remove('visible');
+            }
         });
 
         // Save API key
@@ -989,6 +943,7 @@
                 saveApiKey('');
                 statusEl.textContent = 'API key removed';
                 statusEl.className = 'api-key-status';
+                updateApiKeyStatus();
                 return;
             }
 
@@ -1001,6 +956,7 @@
             saveApiKey(key);
             statusEl.textContent = 'API key saved successfully!';
             statusEl.className = 'api-key-status saved';
+            updateApiKeyStatus();
         });
 
         // Initialize API key status on load
@@ -1016,7 +972,7 @@
             document.getElementById('image-input').click();
         });
 
-        document.getElementById('image-input').addEventListener('change', function(e) {
+        document.getElementById('image-input').addEventListener('change', async function(e) {
             const file = e.target.files[0];
             if (!file) return;
 
@@ -1034,7 +990,7 @@
             }
 
             const reader = new FileReader();
-            reader.onload = function(event) {
+            reader.onload = async function(event) {
                 const base64Data = event.target.result;
                 uploadedImageData = base64Data.split(',')[1]; // Remove data URL prefix
                 uploadedImageType = file.type;
@@ -1043,8 +999,26 @@
                 document.getElementById('image-preview').src = base64Data;
                 document.getElementById('image-preview-container').classList.add('visible');
 
-                // Check for API key and show warning if needed
-                checkApiKeyWarning();
+                // Check for API key
+                const apiKey = getApiKey();
+                if (!apiKey) {
+                    checkApiKeyWarning();
+                    return;
+                }
+
+                // Auto-analyze the image
+                const loadingEl = document.getElementById('image-loading');
+                loadingEl.style.display = 'flex';
+
+                try {
+                    const analysis = await analyzeImageWithClaude(uploadedImageData, uploadedImageType);
+                    displayAnalysisResults(analysis, 'image');
+                } catch (error) {
+                    console.error('Analysis error:', error);
+                    alert('Error analyzing screenshot: ' + error.message);
+                } finally {
+                    loadingEl.style.display = 'none';
+                }
             };
             reader.readAsDataURL(file);
         });
@@ -1055,6 +1029,7 @@
             document.getElementById('image-input').value = '';
             document.getElementById('image-preview-container').classList.remove('visible');
             document.getElementById('api-key-warning').classList.remove('visible');
+            document.getElementById('image-loading').style.display = 'none';
         });
 
         function checkApiKeyWarning() {
@@ -1065,6 +1040,12 @@
                 warningEl.classList.remove('visible');
             }
         }
+
+        // Open settings from warning
+        document.getElementById('open-settings-warning').addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('settings-modal').classList.add('visible');
+        });
 
         // =====================
         // Claude API Image Analysis
@@ -1153,90 +1134,14 @@ If the image is not a message/email/communication, respond with:
             }
         }
 
-        function displayImageAnalysisResults(analysis) {
-            const resultsSection = document.getElementById('results');
-            const riskScoreEl = document.getElementById('risk-score');
-            const riskSummaryEl = document.getElementById('risk-summary');
-            const analysisSourceEl = document.getElementById('analysis-source');
-            const flagCountEl = document.getElementById('flag-count');
-            const flagsContainer = document.getElementById('flags-container');
-
-            const riskLevel = analysis.riskLevel || 'low';
-
-            riskScoreEl.textContent = riskLevel.charAt(0).toUpperCase() + riskLevel.slice(1);
-            riskScoreEl.className = 'risk-score ' + riskLevel;
-
-            riskSummaryEl.textContent = analysis.summary || getRiskSummary(riskLevel, analysis.flags?.length || 0);
-            analysisSourceEl.textContent = 'Analyzed via Claude Vision API';
-
-            const flags = analysis.flags || [];
-            flagCountEl.textContent = flags.length;
-            flagCountEl.className = 'flag-count' + (flags.length === 0 ? ' none' : '');
-
-            flagsContainer.innerHTML = '';
-
-            if (flags.length === 0) {
-                flagsContainer.innerHTML = `
-                    <div class="no-flags">
-                        <div class="no-flags-icon">&#10003;</div>
-                        <p>No red flags detected in this screenshot.</p>
-                    </div>
-                `;
-            } else {
-                for (const flag of flags) {
-                    const flagEl = document.createElement('div');
-                    flagEl.className = 'flag-item';
-                    flagEl.innerHTML = `
-                        <div class="flag-category">${escapeHtml(flag.category)}</div>
-                        <div class="flag-explanation">${escapeHtml(flag.explanation)}</div>
-                    `;
-                    flagsContainer.appendChild(flagEl);
-                }
-            }
-
-            resultsSection.classList.add('visible');
-            resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-
-        document.getElementById('analyze-image-btn').addEventListener('click', async function() {
-            if (!uploadedImageData) {
-                alert('Please upload an image first.');
-                return;
-            }
-
-            const apiKey = getApiKey();
-            if (!apiKey) {
-                alert('Please add your Anthropic API key in the settings above to analyze screenshots.');
-                document.getElementById('settings-content').classList.add('visible');
-                document.getElementById('settings-arrow').classList.add('open');
-                return;
-            }
-
-            const btn = this;
-            const originalText = btn.textContent;
-            btn.disabled = true;
-            btn.innerHTML = '<span class="loading-spinner"></span> Analyzing...';
-
-            try {
-                const analysis = await analyzeImageWithClaude(uploadedImageData, uploadedImageType);
-                displayImageAnalysisResults(analysis);
-            } catch (error) {
-                console.error('Analysis error:', error);
-                alert('Error analyzing image: ' + error.message);
-            } finally {
-                btn.disabled = false;
-                btn.textContent = originalText;
-            }
-        });
-
         // Update clear button to also clear image
-        const originalClearHandler = document.getElementById('clear-btn').onclick;
         document.getElementById('clear-btn').addEventListener('click', function() {
             uploadedImageData = null;
             uploadedImageType = null;
             document.getElementById('image-input').value = '';
             document.getElementById('image-preview-container').classList.remove('visible');
             document.getElementById('api-key-warning').classList.remove('visible');
+            document.getElementById('image-loading').style.display = 'none';
         });
     </script>
 </body>
