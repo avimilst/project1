@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scam Detector - Analyze Suspicious Messages</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2rem;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1rem;
+        }
+
+        .input-section {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        textarea {
+            width: 100%;
+            height: 180px;
+            padding: 14px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+            resize: vertical;
+            transition: border-color 0.2s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        textarea::placeholder {
+            color: #aaa;
+        }
+
+        .btn-analyze {
+            width: 100%;
+            padding: 14px 24px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            margin-top: 16px;
+        }
+
+        .btn-analyze:hover {
+            background: #2980b9;
+        }
+
+        .btn-analyze:active {
+            transform: scale(0.98);
+        }
+
+        .btn-analyze:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        .results-section {
+            display: none;
+        }
+
+        .results-section.visible {
+            display: block;
+        }
+
+        .risk-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .risk-label {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #666;
+            margin-bottom: 12px;
+        }
+
+        .risk-score {
+            font-size: 2.5rem;
+            font-weight: 700;
+            padding: 16px 32px;
+            border-radius: 50px;
+            display: inline-block;
+        }
+
+        .risk-score.low {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .risk-score.medium {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .risk-score.high {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .risk-summary {
+            margin-top: 16px;
+            color: #666;
+            font-size: 1rem;
+        }
+
+        .flags-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .flags-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .flag-count {
+            background: #e74c3c;
+            color: white;
+            font-size: 0.85rem;
+            padding: 2px 10px;
+            border-radius: 20px;
+        }
+
+        .flag-count.none {
+            background: #27ae60;
+        }
+
+        .flag-item {
+            padding: 14px;
+            border-left: 4px solid #e74c3c;
+            background: #fef9f9;
+            margin-bottom: 12px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .flag-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .flag-category {
+            font-weight: 600;
+            color: #c0392b;
+            font-size: 0.95rem;
+            margin-bottom: 4px;
+        }
+
+        .flag-explanation {
+            color: #555;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .flag-matches {
+            margin-top: 8px;
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        .flag-matches code {
+            background: #fee;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-right: 6px;
+            color: #c0392b;
+        }
+
+        .no-flags {
+            text-align: center;
+            padding: 30px;
+            color: #27ae60;
+        }
+
+        .no-flags-icon {
+            font-size: 3rem;
+            margin-bottom: 12px;
+        }
+
+        .clear-btn {
+            background: none;
+            border: 2px solid #e1e5e9;
+            color: #666;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            margin-top: 16px;
+            transition: all 0.2s;
+        }
+
+        .clear-btn:hover {
+            border-color: #3498db;
+            color: #3498db;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            color: #888;
+            font-size: 0.85rem;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 16px;
+            }
+
+            h1 {
+                font-size: 1.6rem;
+            }
+
+            .input-section,
+            .risk-card,
+            .flags-card {
+                padding: 18px;
+            }
+
+            .risk-score {
+                font-size: 2rem;
+                padding: 12px 24px;
+            }
+
+            textarea {
+                height: 150px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Scam Detector</h1>
+            <p class="subtitle">Paste a suspicious message to analyze it for common scam indicators</p>
+        </header>
+
+        <section class="input-section">
+            <label for="message-input">Paste suspicious message here:</label>
+            <textarea
+                id="message-input"
+                placeholder="Paste the email, text message, or DM you want to analyze..."
+            ></textarea>
+            <button class="btn-analyze" id="analyze-btn">Analyze Message</button>
+        </section>
+
+        <section class="results-section" id="results">
+            <div class="risk-card">
+                <div class="risk-label">Risk Level</div>
+                <div class="risk-score" id="risk-score">Low</div>
+                <p class="risk-summary" id="risk-summary"></p>
+            </div>
+
+            <div class="flags-card">
+                <div class="flags-title">
+                    Red Flags Found
+                    <span class="flag-count" id="flag-count">0</span>
+                </div>
+                <div id="flags-container"></div>
+            </div>
+
+            <center>
+                <button class="clear-btn" id="clear-btn">Clear & Start Over</button>
+            </center>
+        </section>
+
+        <footer>
+            <p>This tool provides general guidance only. When in doubt, verify directly with the official source.</p>
+        </footer>
+    </div>
+
+    <script>
+        const redFlagPatterns = [
+            {
+                category: "Urgency Language",
+                patterns: [
+                    /\bact\s*now\b/i,
+                    /\blimited\s*time\b/i,
+                    /\bimmediately\b/i,
+                    /\bexpires?\s*today\b/i,
+                    /\burgent\b/i,
+                    /\bdon'?t\s*delay\b/i,
+                    /\btime\s*sensitive\b/i,
+                    /\blast\s*chance\b/i,
+                    /\bhurry\b/i,
+                    /\bonly\s*\d+\s*(hours?|minutes?|days?)\s*(left|remaining)\b/i,
+                    /\bexpir(es?|ing)\s*(soon|in\s*\d+)/i,
+                    /\bwithin\s*(24|48)\s*hours?\b/i,
+                    /\brespond\s*(immediately|now|asap)\b/i
+                ],
+                explanation: "Scammers create artificial urgency to pressure you into acting without thinking. Legitimate organizations give you time to make decisions."
+            },
+            {
+                category: "Money or Payment Requests",
+                patterns: [
+                    /\bwire\s*transfer\b/i,
+                    /\bgift\s*cards?\b/i,
+                    /\bsend\s*(money|funds|payment)\b/i,
+                    /\bpay(ment)?\s*(immediately|now|today)\b/i,
+                    /\b(western\s*union|moneygram)\b/i,
+                    /\bbitcoin\b/i,
+                    /\bcrypto(currency)?\b/i,
+                    /\bprepaid\s*(card|debit)\b/i,
+                    /\bcash\s*app\b/i,
+                    /\bzelle\b/i,
+                    /\bvenmo\b/i,
+                    /\bprocessing\s*fee\b/i,
+                    /\btransfer\s*fee\b/i,
+                    /\badvance\s*(fee|payment)\b/i
+                ],
+                explanation: "Requests for money via gift cards, wire transfers, or cryptocurrency are major red flags. These payment methods are nearly impossible to trace or recover."
+            },
+            {
+                category: "Personal Information Requests",
+                patterns: [
+                    /\bpassword\b/i,
+                    /\bssn\b/i,
+                    /\bsocial\s*security\b/i,
+                    /\bbank\s*(account|details?|information)\b/i,
+                    /\brouting\s*number\b/i,
+                    /\baccount\s*number\b/i,
+                    /\blogin\s*(credentials?|info|details?)\b/i,
+                    /\bverify\s*(your\s*)?(identity|account|information)\b/i,
+                    /\bconfirm\s*(your\s*)?(identity|account|details?)\b/i,
+                    /\bcredit\s*card\s*(number|info|details?)\b/i,
+                    /\bpin\s*(number|code)?\b/i,
+                    /\bdate\s*of\s*birth\b/i,
+                    /\bmother'?s?\s*maiden\s*name\b/i,
+                    /\bupdate\s*(your\s*)?(billing|payment)\s*(info|details?)\b/i
+                ],
+                explanation: "Legitimate companies never ask for passwords, SSN, or full bank details via email or text. This is a classic phishing attempt to steal your identity."
+            },
+            {
+                category: "Too-Good-To-Be-True Offers",
+                patterns: [
+                    /\blottery\b/i,
+                    /\bwinner\b/i,
+                    /\byou('ve)?\s*(have\s*)?(won|been\s*selected)\b/i,
+                    /\binheritance\b/i,
+                    /\bmillion\s*dollars?\b/i,
+                    /\bfree\s*money\b/i,
+                    /\bclaim\s*(your\s*)?(prize|reward|winnings?)\b/i,
+                    /\bcongratulations?\b/i,
+                    /\bselected\s*(as\s*a\s*)?(winner|beneficiary)\b/i,
+                    /\brandom(ly)?\s*selected\b/i,
+                    /\bunclaimed\s*(funds?|money)\b/i,
+                    /\bguaranteed\s*(income|return|profit)\b/i,
+                    /\brisk\s*free\b/i,
+                    /\bdouble\s*your\s*money\b/i
+                ],
+                explanation: "If it sounds too good to be true, it probably is. You cannot win a lottery you never entered, and strangers don't give away fortunes."
+            },
+            {
+                category: "Suspicious Sender Claims",
+                patterns: [
+                    /\birs\b/i,
+                    /\binternal\s*revenue\b/i,
+                    /\btech\s*support\b/i,
+                    /\bmicrosoft\s*(support|technician)\b/i,
+                    /\bapple\s*support\b/i,
+                    /\bnigerian?\s*prince\b/i,
+                    /\bbank\s*security\b/i,
+                    /\bsecurity\s*department\b/i,
+                    /\bfraud\s*department\b/i,
+                    /\bfbi\b/i,
+                    /\bcustoms\s*(officer|agent)\b/i,
+                    /\broyal(ty)?\s*family\b/i,
+                    /\bgovernment\s*official\b/i,
+                    /\battorney\s*general\b/i,
+                    /\bsocial\s*security\s*administration\b/i
+                ],
+                explanation: "Scammers impersonate trusted authorities to gain your trust. Real government agencies and tech companies don't contact you this way about urgent issues."
+            },
+            {
+                category: "Threatening Language",
+                patterns: [
+                    /\baccount\s*(will\s*be\s*)?(suspended|closed|terminated)\b/i,
+                    /\blegal\s*action\b/i,
+                    /\b(arrest|arrested)\b/i,
+                    /\bwarrant\b/i,
+                    /\bpolice\b/i,
+                    /\bjail\b/i,
+                    /\bprosecute\b/i,
+                    /\blaw\s*enforcement\b/i,
+                    /\bseize\s*(your\s*)?(assets?|property)\b/i,
+                    /\breport(ed)?\s*to\s*(the\s*)?(authorities|police)\b/i,
+                    /\bcriminal\s*charges?\b/i,
+                    /\bfines?\s*(of\s*\$?\d+|will\s*be\s*(issued|applied))\b/i,
+                    /\bpenalt(y|ies)\b/i,
+                    /\bdeport(ation|ed)?\b/i
+                ],
+                explanation: "Scammers use fear and threats to override your judgment. Legitimate organizations don't threaten arrest or legal action via email or text."
+            },
+            {
+                category: "Unusual Payment Methods",
+                patterns: [
+                    /\bitunes\s*cards?\b/i,
+                    /\bgoogle\s*play\s*cards?\b/i,
+                    /\bamazon\s*cards?\b/i,
+                    /\bsteam\s*cards?\b/i,
+                    /\bpay\s*(with|using|via)\s*(gift\s*cards?|crypto)\b/i,
+                    /\bscratch\s*off\s*(the\s*)?code\b/i,
+                    /\bread\s*(me\s*)?(the\s*)?numbers?\s*(on\s*(the\s*)?back)?\b/i,
+                    /\bredeem(able)?\s*code\b/i,
+                    /\buntraceable\b/i,
+                    /\banonymous\s*payment\b/i
+                ],
+                explanation: "No legitimate business or government agency accepts payment via gift cards. This is a tell-tale sign of a scam."
+            },
+            {
+                category: "Spelling and Grammar Errors",
+                patterns: [
+                    /\bdear\s*(customer|user|friend|beneficiary|sir\/madam)\b/i,
+                    /\bkindly\s*(do|provide|send|click|verify)\b/i,
+                    /\bdo\s*the\s*needful\b/i,
+                    /\brevert\s*back\b/i,
+                    /\byour\s*the\s/i,
+                    /\bplease\s*to\s/i,
+                    /\bwith\s*regards\s*to\s*the\s*above\b/i,
+                    /\b(recieve|reciept|transfered|informations|kindest)\b/i
+                ],
+                explanation: "Poor grammar and unusual phrasing often indicate foreign scam operations. Legitimate companies proofread their communications."
+            },
+            {
+                category: "Suspicious Links or Actions",
+                patterns: [
+                    /\bclick\s*(here|below|this\s*link)\b/i,
+                    /\bverify\s*(now|immediately|your\s*account)\b/i,
+                    /\blogin\s*(here|now|immediately)\b/i,
+                    /\bupdate\s*(your\s*)?(payment|billing|account)\s*(now|immediately)?\b/i,
+                    /\bdownload\s*(this|the)\s*(attachment|file)\b/i,
+                    /\benable\s*(macros|content)\b/i,
+                    /\bopen\s*(the\s*)?(attached|attachment)\b/i
+                ],
+                explanation: "Scammers often try to get you to click malicious links or download dangerous files. Never click links in suspicious messages."
+            }
+        ];
+
+        function analyzeMessage(text) {
+            const results = [];
+
+            for (const category of redFlagPatterns) {
+                const matches = [];
+                for (const pattern of category.patterns) {
+                    const match = text.match(pattern);
+                    if (match) {
+                        matches.push(match[0]);
+                    }
+                }
+
+                if (matches.length > 0) {
+                    results.push({
+                        category: category.category,
+                        explanation: category.explanation,
+                        matches: [...new Set(matches)]
+                    });
+                }
+            }
+
+            return results;
+        }
+
+        function calculateRiskLevel(flagCount) {
+            if (flagCount === 0) return 'low';
+            if (flagCount <= 2) return 'medium';
+            return 'high';
+        }
+
+        function getRiskSummary(riskLevel, flagCount) {
+            if (riskLevel === 'low') {
+                return 'No obvious scam indicators detected. Still, remain cautious with unsolicited messages.';
+            } else if (riskLevel === 'medium') {
+                return `Found ${flagCount} potential warning sign${flagCount > 1 ? 's' : ''}. Proceed with caution and verify the sender through official channels.`;
+            } else {
+                return `Found ${flagCount} red flags. This message has multiple characteristics of a scam. Do not respond or click any links.`;
+            }
+        }
+
+        function displayResults(flags) {
+            const resultsSection = document.getElementById('results');
+            const riskScoreEl = document.getElementById('risk-score');
+            const riskSummaryEl = document.getElementById('risk-summary');
+            const flagCountEl = document.getElementById('flag-count');
+            const flagsContainer = document.getElementById('flags-container');
+
+            const riskLevel = calculateRiskLevel(flags.length);
+
+            riskScoreEl.textContent = riskLevel.charAt(0).toUpperCase() + riskLevel.slice(1);
+            riskScoreEl.className = 'risk-score ' + riskLevel;
+
+            riskSummaryEl.textContent = getRiskSummary(riskLevel, flags.length);
+
+            flagCountEl.textContent = flags.length;
+            flagCountEl.className = 'flag-count' + (flags.length === 0 ? ' none' : '');
+
+            flagsContainer.innerHTML = '';
+
+            if (flags.length === 0) {
+                flagsContainer.innerHTML = `
+                    <div class="no-flags">
+                        <div class="no-flags-icon">&#10003;</div>
+                        <p>No red flags detected in this message.</p>
+                    </div>
+                `;
+            } else {
+                for (const flag of flags) {
+                    const flagEl = document.createElement('div');
+                    flagEl.className = 'flag-item';
+                    flagEl.innerHTML = `
+                        <div class="flag-category">${flag.category}</div>
+                        <div class="flag-explanation">${flag.explanation}</div>
+                        <div class="flag-matches">
+                            Found: ${flag.matches.map(m => `<code>${escapeHtml(m)}</code>`).join('')}
+                        </div>
+                    `;
+                    flagsContainer.appendChild(flagEl);
+                }
+            }
+
+            resultsSection.classList.add('visible');
+            resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        document.getElementById('analyze-btn').addEventListener('click', function() {
+            const text = document.getElementById('message-input').value.trim();
+
+            if (!text) {
+                alert('Please paste a message to analyze.');
+                return;
+            }
+
+            const flags = analyzeMessage(text);
+            displayResults(flags);
+        });
+
+        document.getElementById('clear-btn').addEventListener('click', function() {
+            document.getElementById('message-input').value = '';
+            document.getElementById('results').classList.remove('visible');
+            document.getElementById('message-input').focus();
+        });
+
+        document.getElementById('message-input').addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'Enter') {
+                document.getElementById('analyze-btn').click();
+            }
+        });
+    </script>
+</body>
+</html>
