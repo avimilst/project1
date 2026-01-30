@@ -193,13 +193,13 @@
                 </p>
             </div>
 
-            <!-- iOS instructions -->
-            <div id="install-ios" class="hidden space-y-4">
-                <p class="text-gray-700">To install this app on your iPhone or iPad:</p>
+            <!-- Safari iOS instructions -->
+            <div id="install-ios-safari" class="hidden space-y-4">
+                <p class="text-gray-700">To install this app using Safari:</p>
                 <ol class="space-y-3 text-gray-600">
                     <li class="flex items-start gap-3">
                         <span class="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-bold">1</span>
-                        <span>Tap the <strong>Share</strong> button <svg class="inline w-5 h-5 align-text-bottom" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg> at the bottom of Safari</span>
+                        <span>Tap the <strong>Share</strong> button <svg class="inline w-5 h-5 align-text-bottom" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3 3h-2v8h-2V5H9l3-3z"/><path d="M5 12v8a2 2 0 002 2h10a2 2 0 002-2v-8h-2v8H7v-8H5z"/></svg> at the bottom of Safari</span>
                     </li>
                     <li class="flex items-start gap-3">
                         <span class="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-bold">2</span>
@@ -208,6 +208,25 @@
                     <li class="flex items-start gap-3">
                         <span class="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-bold">3</span>
                         <span>Tap <strong>"Add"</strong> in the top right</span>
+                    </li>
+                </ol>
+            </div>
+
+            <!-- Chrome iOS instructions -->
+            <div id="install-ios-chrome" class="hidden space-y-4">
+                <p class="text-gray-700">To install this app using Chrome:</p>
+                <ol class="space-y-3 text-gray-600">
+                    <li class="flex items-start gap-3">
+                        <span class="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-bold">1</span>
+                        <span>Tap the <strong>Share</strong> button <svg class="inline w-5 h-5 align-text-bottom" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3 3h-2v8h-2V5H9l3-3z"/><path d="M5 12v8a2 2 0 002 2h10a2 2 0 002-2v-8h-2v8H7v-8H5z"/></svg> (top right, next to the URL bar)</span>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <span class="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-bold">2</span>
+                        <span>Scroll down and tap <strong>"Add to Home Screen"</strong></span>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <span class="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-bold">3</span>
+                        <span>Tap <strong>"Add"</strong></span>
                     </li>
                 </ol>
             </div>
@@ -769,13 +788,18 @@ If the image isn't a message/communication:
         const installPromptBtn = document.getElementById('install-prompt-btn');
         const installAndroid = document.getElementById('install-android');
         const installAndroidManual = document.getElementById('install-android-manual');
-        const installIos = document.getElementById('install-ios');
+        const installIosSafari = document.getElementById('install-ios-safari');
+        const installIosChrome = document.getElementById('install-ios-chrome');
 
-        // Detect if on iOS
-        const isIos = /iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase());
+        // Browser detection
+        const ua = navigator.userAgent.toLowerCase();
+        const isIos = /iphone|ipad|ipod/.test(ua);
+        const isAndroid = /android/.test(ua);
+        const isChromeIos = isIos && /crios/.test(ua);
+        const isSafariIos = isIos && !isChromeIos && /safari/.test(ua);
         const isInStandaloneMode = window.matchMedia('(display-mode: standalone)').matches ||
                                    window.navigator.standalone === true;
-        const isMobile = /android|iphone|ipad|ipod|mobile/i.test(navigator.userAgent);
+        const isMobile = /android|iphone|ipad|ipod|mobile/i.test(ua);
 
         // Check if banner was dismissed
         const bannerDismissed = localStorage.getItem('installBannerDismissed');
@@ -813,18 +837,32 @@ If the image isn't a message/communication:
             localStorage.setItem('installBannerDismissed', 'true');
         });
 
-        // Show install popup
+        // Show install popup with browser-specific instructions
         function showInstallPopup() {
-            if (isIos) {
-                installAndroid.classList.add('hidden');
-                installIos.classList.remove('hidden');
+            // Hide all instruction sections first
+            installAndroid.classList.add('hidden');
+            installIosSafari.classList.add('hidden');
+            installIosChrome.classList.add('hidden');
+
+            if (isSafariIos) {
+                // Safari on iPhone/iPad
+                installIosSafari.classList.remove('hidden');
+            } else if (isChromeIos) {
+                // Chrome on iPhone/iPad
+                installIosChrome.classList.remove('hidden');
+            } else if (isIos) {
+                // Other iOS browsers - default to Safari instructions
+                installIosSafari.classList.remove('hidden');
             } else {
+                // Android Chrome or other Android browsers
                 installAndroid.classList.remove('hidden');
-                installIos.classList.add('hidden');
-                // Show manual instructions if no prompt available
+                // Show manual instructions if no native prompt available
                 if (!deferredPrompt) {
                     installAndroidManual.classList.remove('hidden');
                     installPromptBtn.classList.add('hidden');
+                } else {
+                    installAndroidManual.classList.add('hidden');
+                    installPromptBtn.classList.remove('hidden');
                 }
             }
             installPopupBackdrop.classList.add('show');
