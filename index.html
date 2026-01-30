@@ -530,6 +530,7 @@ If the image isn't a message/communication:
             isAnalyzing = true;
             elements.loadingState.classList.remove('hidden');
             elements.results.classList.add('hidden');
+            elements.loadingState.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
             try {
                 const analysis = await analyzeWithClaude(imageData);
