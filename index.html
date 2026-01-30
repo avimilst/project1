@@ -2,8 +2,22 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Scam Checker - Is This Message Safe?</title>
+
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#2563EB">
+    <meta name="description" content="Check if a message is a scam - quick and easy scam detection">
+    <link rel="manifest" href="/manifest.json">
+
+    <!-- iOS PWA Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Scam Checker">
+    <link rel="apple-touch-icon" href="/icon.svg">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/icon.svg">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -68,9 +82,138 @@
         input[type="file"] {
             display: none;
         }
+
+        /* Install banner styles */
+        .install-banner {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            transform: translateY(100%);
+            transition: transform 0.3s ease-out;
+        }
+
+        .install-banner.show {
+            transform: translateY(0);
+        }
+
+        /* Install popup backdrop */
+        .install-popup-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            z-index: 1001;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s, visibility 0.2s;
+        }
+
+        .install-popup-backdrop.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Offline banner */
+        .offline-banner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 999;
+            transform: translateY(-100%);
+            transition: transform 0.3s ease-out;
+        }
+
+        .offline-banner.show {
+            transform: translateY(0);
+        }
+
+        /* Hide in standalone mode */
+        @media all and (display-mode: standalone) {
+            .install-banner {
+                display: none !important;
+            }
+        }
     </style>
 </head>
 <body class="bg-blue-50 min-h-screen font-sans antialiased">
+    <!-- Offline Banner -->
+    <div id="offline-banner" class="offline-banner bg-amber-500 text-white px-4 py-3 text-center">
+        <p class="text-sm font-medium">You're offline. Connect to the internet to scan messages.</p>
+    </div>
+
+    <!-- Install Banner (mobile only) -->
+    <div id="install-banner" class="install-banner bg-blue-600 text-white px-4 py-3 safe-area-inset-bottom">
+        <div class="max-w-xl mx-auto flex items-center justify-between gap-3">
+            <button id="install-banner-btn" class="flex items-center gap-2 text-left flex-1">
+                <span class="text-xl">📲</span>
+                <span class="font-medium">Install App</span>
+            </button>
+            <button id="install-banner-dismiss" class="p-2 hover:bg-blue-700 rounded-full" aria-label="Dismiss">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Install Popup -->
+    <div id="install-popup-backdrop" class="install-popup-backdrop">
+        <div class="fixed inset-x-4 bottom-4 top-auto md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-md bg-white rounded-2xl shadow-2xl p-6 z-[1002]">
+            <div class="flex items-start justify-between mb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-gray-900 text-lg">Install Scam Checker</h3>
+                        <p class="text-sm text-gray-500">Add to your home screen</p>
+                    </div>
+                </div>
+                <button id="install-popup-close" class="p-2 hover:bg-gray-100 rounded-full" aria-label="Close">
+                    <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Android instructions (shown by default, hidden on iOS) -->
+            <div id="install-android" class="space-y-3">
+                <p class="text-gray-700">Tap the button below to install:</p>
+                <button id="install-prompt-btn" class="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors">
+                    Install App
+                </button>
+                <p id="install-android-manual" class="hidden text-sm text-gray-500 text-center">
+                    Or tap <strong>⋮</strong> menu → <strong>"Add to Home screen"</strong>
+                </p>
+            </div>
+
+            <!-- iOS instructions -->
+            <div id="install-ios" class="hidden space-y-4">
+                <p class="text-gray-700">To install this app on your iPhone or iPad:</p>
+                <ol class="space-y-3 text-gray-600">
+                    <li class="flex items-start gap-3">
+                        <span class="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-bold">1</span>
+                        <span>Tap the <strong>Share</strong> button <svg class="inline w-5 h-5 align-text-bottom" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg> at the bottom of Safari</span>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <span class="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-bold">2</span>
+                        <span>Scroll down and tap <strong>"Add to Home Screen"</strong></span>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <span class="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-bold">3</span>
+                        <span>Tap <strong>"Add"</strong> in the top right</span>
+                    </li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
     <div class="max-w-xl mx-auto px-5 py-8 md:py-12">
 
         <!-- Friendly Header -->
@@ -528,6 +671,198 @@ If the image isn't a message/communication:
 
         // Reset
         elements.resetBtn.addEventListener('click', resetAnalysis);
+
+        // =====================
+        // PWA: Service Worker & Install
+        // =====================
+
+        // Generate PNG icon for iOS (which doesn't support SVG icons well)
+        function generateAppleTouchIcon() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 180;
+            canvas.height = 180;
+            const ctx = canvas.getContext('2d');
+
+            // Background gradient
+            const gradient = ctx.createLinearGradient(0, 0, 180, 180);
+            gradient.addColorStop(0, '#3B82F6');
+            gradient.addColorStop(1, '#2563EB');
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(90, 90, 90, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Shield icon (scaled to fit)
+            ctx.fillStyle = 'white';
+            ctx.beginPath();
+            // Shield path scaled to 180x180
+            const scale = 180 / 512;
+            ctx.save();
+            ctx.scale(scale, scale);
+            // Shield body
+            ctx.moveTo(256, 100);
+            ctx.bezierCurveTo(206, 100, 156, 120, 126, 135);
+            ctx.lineTo(126, 260);
+            ctx.bezierCurveTo(126, 340, 181, 405, 256, 425);
+            ctx.bezierCurveTo(331, 405, 386, 340, 386, 260);
+            ctx.lineTo(386, 135);
+            ctx.bezierCurveTo(356, 120, 306, 100, 256, 100);
+            ctx.closePath();
+            ctx.fill();
+
+            // Checkmark
+            ctx.strokeStyle = '#2563EB';
+            ctx.lineWidth = 28;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.beginPath();
+            ctx.moveTo(200, 270);
+            ctx.lineTo(240, 310);
+            ctx.lineTo(320, 230);
+            ctx.stroke();
+            ctx.restore();
+
+            // Set as apple-touch-icon
+            const link = document.querySelector('link[rel="apple-touch-icon"]');
+            if (link) {
+                link.href = canvas.toDataURL('image/png');
+            }
+        }
+
+        // Generate icon on load
+        generateAppleTouchIcon();
+
+        // Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', async () => {
+                try {
+                    const registration = await navigator.serviceWorker.register('/sw.js');
+                    console.log('Service Worker registered:', registration.scope);
+                } catch (error) {
+                    console.log('Service Worker registration failed:', error);
+                }
+            });
+        }
+
+        // Offline/Online Detection
+        const offlineBanner = document.getElementById('offline-banner');
+
+        function updateOnlineStatus() {
+            if (!navigator.onLine) {
+                offlineBanner.classList.add('show');
+            } else {
+                offlineBanner.classList.remove('show');
+            }
+        }
+
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
+        updateOnlineStatus(); // Check initial status
+
+        // Install Prompt Handling
+        let deferredPrompt = null;
+        const installBanner = document.getElementById('install-banner');
+        const installBannerBtn = document.getElementById('install-banner-btn');
+        const installBannerDismiss = document.getElementById('install-banner-dismiss');
+        const installPopupBackdrop = document.getElementById('install-popup-backdrop');
+        const installPopupClose = document.getElementById('install-popup-close');
+        const installPromptBtn = document.getElementById('install-prompt-btn');
+        const installAndroid = document.getElementById('install-android');
+        const installAndroidManual = document.getElementById('install-android-manual');
+        const installIos = document.getElementById('install-ios');
+
+        // Detect if on iOS
+        const isIos = /iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase());
+        const isInStandaloneMode = window.matchMedia('(display-mode: standalone)').matches ||
+                                   window.navigator.standalone === true;
+        const isMobile = /android|iphone|ipad|ipod|mobile/i.test(navigator.userAgent);
+
+        // Check if banner was dismissed
+        const bannerDismissed = localStorage.getItem('installBannerDismissed');
+
+        // Show install banner on mobile if not already installed and not dismissed
+        function checkShowInstallBanner() {
+            if (isMobile && !isInStandaloneMode && !bannerDismissed) {
+                // Delay showing banner so it doesn't appear immediately
+                setTimeout(() => {
+                    installBanner.classList.add('show');
+                }, 2000);
+            }
+        }
+
+        // Listen for beforeinstallprompt (Chrome/Edge/Android)
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            checkShowInstallBanner();
+        });
+
+        // For iOS and browsers without beforeinstallprompt
+        if (isIos || !('BeforeInstallPromptEvent' in window)) {
+            checkShowInstallBanner();
+        }
+
+        // Banner click - show popup
+        installBannerBtn.addEventListener('click', () => {
+            showInstallPopup();
+        });
+
+        // Banner dismiss
+        installBannerDismiss.addEventListener('click', () => {
+            installBanner.classList.remove('show');
+            localStorage.setItem('installBannerDismissed', 'true');
+        });
+
+        // Show install popup
+        function showInstallPopup() {
+            if (isIos) {
+                installAndroid.classList.add('hidden');
+                installIos.classList.remove('hidden');
+            } else {
+                installAndroid.classList.remove('hidden');
+                installIos.classList.add('hidden');
+                // Show manual instructions if no prompt available
+                if (!deferredPrompt) {
+                    installAndroidManual.classList.remove('hidden');
+                    installPromptBtn.classList.add('hidden');
+                }
+            }
+            installPopupBackdrop.classList.add('show');
+        }
+
+        // Close popup
+        function closeInstallPopup() {
+            installPopupBackdrop.classList.remove('show');
+        }
+
+        installPopupClose.addEventListener('click', closeInstallPopup);
+        installPopupBackdrop.addEventListener('click', (e) => {
+            if (e.target === installPopupBackdrop) {
+                closeInstallPopup();
+            }
+        });
+
+        // Install button in popup
+        installPromptBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log('Install prompt outcome:', outcome);
+                deferredPrompt = null;
+
+                if (outcome === 'accepted') {
+                    installBanner.classList.remove('show');
+                    closeInstallPopup();
+                }
+            }
+        });
+
+        // Hide banner if app gets installed
+        window.addEventListener('appinstalled', () => {
+            installBanner.classList.remove('show');
+            closeInstallPopup();
+            deferredPrompt = null;
+        });
     </script>
 </body>
 </html>
