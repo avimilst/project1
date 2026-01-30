@@ -222,10 +222,14 @@
                     </li>
                     <li class="flex items-start gap-3">
                         <span class="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-bold">2</span>
-                        <span>Scroll down and tap <strong>"Add to Home Screen"</strong></span>
+                        <span>Tap <strong>"More"</strong> at the end of the row of icons</span>
                     </li>
                     <li class="flex items-start gap-3">
                         <span class="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-bold">3</span>
+                        <span>Scroll down and tap <strong>"Add to Home Screen"</strong></span>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <span class="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-bold">4</span>
                         <span>Tap <strong>"Add"</strong></span>
                     </li>
                 </ol>
@@ -263,25 +267,25 @@
                         <h2 class="text-xl md:text-2xl font-bold text-gray-900 mb-3">
                             Take a Screenshot
                         </h2>
-                        <p class="text-lg md:text-xl text-gray-600 leading-relaxed mb-4">
+                        <p class="text-lg md:text-xl text-gray-600 leading-relaxed">
                             Take a picture of the suspicious message on your phone or computer.
                         </p>
-                        <!-- Phone Screenshot Illustration -->
-                        <div class="flex justify-center">
-                            <div class="bg-gray-100 rounded-2xl p-4 inline-block">
-                                <div class="w-20 h-32 bg-gray-800 rounded-xl relative mx-auto">
-                                    <div class="absolute top-2 left-1/2 transform -translate-x-1/2 w-8 h-1 bg-gray-600 rounded-full"></div>
-                                    <div class="absolute inset-2 top-4 bg-white rounded-lg flex flex-col p-1.5 gap-1">
-                                        <div class="h-1.5 bg-gray-300 rounded w-3/4"></div>
-                                        <div class="h-1.5 bg-gray-300 rounded w-full"></div>
-                                        <div class="h-1.5 bg-gray-300 rounded w-2/3"></div>
-                                        <div class="h-1.5 bg-red-300 rounded w-1/2 mt-1"></div>
-                                    </div>
-                                    <div class="absolute bottom-1.5 left-1/2 transform -translate-x-1/2 w-4 h-4 border-2 border-gray-600 rounded-full"></div>
-                                </div>
-                                <p class="text-sm text-gray-500 mt-2 text-center font-medium">Screenshot</p>
+                    </div>
+                </div>
+                <!-- Phone Screenshot Illustration (centered in full card width) -->
+                <div class="flex justify-center mt-4">
+                    <div class="bg-gray-100 rounded-2xl p-4 inline-block">
+                        <div class="w-20 h-32 bg-gray-800 rounded-xl relative mx-auto">
+                            <div class="absolute top-2 left-1/2 transform -translate-x-1/2 w-8 h-1 bg-gray-600 rounded-full"></div>
+                            <div class="absolute inset-2 top-4 bg-white rounded-lg flex flex-col p-1.5 gap-1">
+                                <div class="h-1.5 bg-gray-300 rounded w-3/4"></div>
+                                <div class="h-1.5 bg-gray-300 rounded w-full"></div>
+                                <div class="h-1.5 bg-gray-300 rounded w-2/3"></div>
+                                <div class="h-1.5 bg-red-300 rounded w-1/2 mt-1"></div>
                             </div>
+                            <div class="absolute bottom-1.5 left-1/2 transform -translate-x-1/2 w-4 h-4 border-2 border-gray-600 rounded-full"></div>
                         </div>
+                        <p class="text-sm text-gray-500 mt-2 text-center font-medium">Screenshot</p>
                     </div>
                 </div>
             </div>
@@ -296,45 +300,46 @@
                         <h2 class="text-xl md:text-2xl font-bold text-gray-900 mb-3">
                             Upload Your Screenshot
                         </h2>
-                        <p class="text-lg md:text-xl text-gray-600 leading-relaxed mb-5">
+                        <p class="text-lg md:text-xl text-gray-600 leading-relaxed">
                             Tap the button below to share your screenshot with us.
                         </p>
-
-                        <!-- Big Upload Button -->
-                        <label
-                            id="upload-btn"
-                            class="touch-target cursor-pointer flex items-center justify-center gap-4 w-full py-5 px-6 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xl md:text-2xl font-bold rounded-2xl transition-colors shadow-lg animate-pulse-gentle"
-                        >
-                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                            </svg>
-                            Upload Screenshot
-                            <input type="file" id="image-input" accept="image/png,image/jpeg,image/jpg,image/webp,image/gif">
-                        </label>
-
-                        <!-- Image Preview (hidden until image uploaded) -->
-                        <div id="image-preview-container" class="hidden mt-5 animate-fade-in-up">
-                            <div class="relative rounded-2xl overflow-hidden border-2 border-green-400 bg-green-50">
-                                <img id="image-preview" alt="Your screenshot" class="w-full max-h-48 object-contain">
-                                <button
-                                    id="remove-image-btn"
-                                    class="absolute top-3 right-3 w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center touch-target"
-                                    aria-label="Remove image"
-                                >
-                                    <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
-                                    </svg>
-                                </button>
-                            </div>
-                            <p class="text-lg text-green-700 font-medium mt-3 text-center flex items-center justify-center gap-2">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                                </svg>
-                                Screenshot uploaded!
-                            </p>
-                        </div>
-
                     </div>
+                </div>
+
+                <!-- Big Upload Button (centered in full card width) -->
+                <div class="flex justify-center mt-5">
+                    <label
+                        id="upload-btn"
+                        class="touch-target cursor-pointer flex items-center justify-center gap-4 py-5 px-6 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xl md:text-2xl font-bold rounded-2xl transition-colors shadow-lg animate-pulse-gentle"
+                    >
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        Upload Screenshot
+                        <input type="file" id="image-input" accept="image/png,image/jpeg,image/jpg,image/webp,image/gif">
+                    </label>
+                </div>
+
+                <!-- Image Preview (hidden until image uploaded) -->
+                <div id="image-preview-container" class="hidden mt-5 animate-fade-in-up">
+                    <div class="relative rounded-2xl overflow-hidden border-2 border-green-400 bg-green-50">
+                        <img id="image-preview" alt="Your screenshot" class="w-full max-h-48 object-contain">
+                        <button
+                            id="remove-image-btn"
+                            class="absolute top-3 right-3 w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center touch-target"
+                            aria-label="Remove image"
+                        >
+                            <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <p class="text-lg text-green-700 font-medium mt-3 text-center flex items-center justify-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        Screenshot uploaded!
+                    </p>
                 </div>
             </div>
 
@@ -702,14 +707,9 @@ If the image isn't a message/communication:
             canvas.height = 180;
             const ctx = canvas.getContext('2d');
 
-            // Background gradient
-            const gradient = ctx.createLinearGradient(0, 0, 180, 180);
-            gradient.addColorStop(0, '#3B82F6');
-            gradient.addColorStop(1, '#2563EB');
-            ctx.fillStyle = gradient;
-            ctx.beginPath();
-            ctx.arc(90, 90, 90, 0, Math.PI * 2);
-            ctx.fill();
+            // Solid blue background filling entire icon area (no transparency)
+            ctx.fillStyle = '#2563EB';
+            ctx.fillRect(0, 0, 180, 180);
 
             // Shield icon (scaled to fit)
             ctx.fillStyle = 'white';
