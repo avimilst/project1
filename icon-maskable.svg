@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Full blue background for maskable safe zone -->
+  <rect width="512" height="512" fill="#2563EB"/>
+  <!-- Shield icon (centered in safe zone - 80% of canvas) -->
+  <path fill="white" d="M256 115c-45 0-90 18-117 32v112c0 72 50 130 117 148 67-18 117-76 117-148V147c-27-14-72-32-117-32zm50 121l-58 58-32-32c-7-7-7-18 0-25s18-7 25 0l7 7 33-33c7-7 18-7 25 0s7 18 0 25z"/>
+</svg>
